@@ -52,6 +52,31 @@ class FeedPostController extends Controller
                 ->addSelect(DB::raw('IF(f.id IS NULL, false, true) as is_following_author'))
                 ->where('feed_posts.is_published', 1);
 
+            // Privacy filter: show public posts + friends posts (if connected) + own posts
+            $query->where(function ($q) use ($userId) {
+                $q->where('feed_posts.privacy', 'public')
+                  ->orWhere('feed_posts.user_id', $userId)
+                  ->orWhere(function ($q2) use ($userId) {
+                      $q2->where('feed_posts.privacy', 'friends')
+                         ->where(function ($q3) use ($userId) {
+                             $q3->whereExists(function ($sub) use ($userId) {
+                                 $sub->select(DB::raw(1))
+                                     ->from('connections')
+                                     ->where('status', 'accepted')
+                                     ->where(function ($w) use ($userId) {
+                                         $w->where(function ($w2) use ($userId) {
+                                             $w2->whereColumn('sender_id', 'feed_posts.user_id')
+                                                ->where('receiver_id', $userId);
+                                         })->orWhere(function ($w2) use ($userId) {
+                                             $w2->where('sender_id', $userId)
+                                                ->whereColumn('receiver_id', 'feed_posts.user_id');
+                                         });
+                                     });
+                             });
+                         });
+                  });
+            });
+
             if (!empty($blockedUserIds)) {
                 $query->whereNotIn('feed_posts.user_id', $blockedUserIds);
             }
@@ -133,8 +158,33 @@ class FeedPostController extends Controller
                         ->where('f.follower_id', '=', $userId);
                 })
                 ->addSelect(DB::raw('IF(pl.id IS NULL, false, true) as is_user_liked'))
-                ->addSelect(DB::raw('IF(f.id IS NULL, false, true) as is_following_author'))
-                ->orderByDesc('feed_posts.created_at')
+                ->addSelect(DB::raw('IF(f.id IS NULL, false, true) as is_following_author'));
+
+            // Privacy filter: if viewing own profile show all, otherwise filter
+            if ((int)$id !== $userId) {
+                $posts->where(function ($q) use ($userId) {
+                    $q->where('feed_posts.privacy', 'public')
+                      ->orWhere(function ($q2) use ($userId) {
+                          $q2->where('feed_posts.privacy', 'friends')
+                             ->whereExists(function ($sub) use ($userId) {
+                                 $sub->select(DB::raw(1))
+                                     ->from('connections')
+                                     ->where('status', 'accepted')
+                                     ->where(function ($w) use ($userId) {
+                                         $w->where(function ($w2) use ($userId) {
+                                             $w2->whereColumn('sender_id', 'feed_posts.user_id')
+                                                ->where('receiver_id', $userId);
+                                         })->orWhere(function ($w2) use ($userId) {
+                                             $w2->where('sender_id', $userId)
+                                                ->whereColumn('receiver_id', 'feed_posts.user_id');
+                                         });
+                                     });
+                             });
+                      });
+                });
+            }
+
+            $posts = $posts->orderByDesc('feed_posts.created_at')
                 ->paginate(10);
 
             return response()->json([
@@ -249,6 +299,7 @@ class FeedPostController extends Controller
     public function show($id)
     {
         try {
+            $userId = auth()->id();
 
             $post = FeedPost::with([
                 'user' => function ($q) {
@@ -260,6 +311,27 @@ class FeedPostController extends Controller
                 },
                 'sharedPosts.attachments'
             ])->withCount(['likes', 'comments', 'shares'])->findOrFail($id);
+
+            // Privacy check
+            if ($post->user_id !== $userId) {
+                if ($post->privacy === 'only_me') {
+                    return response()->json(['status' => false, 'message' => 'This post is private.'], 403);
+                }
+                if ($post->privacy === 'friends') {
+                    $isConnected = \App\Models\Connection::where('status', 'accepted')
+                        ->where(function ($q) use ($userId, $post) {
+                            $q->where(function ($q2) use ($userId, $post) {
+                                $q2->where('sender_id', $userId)->where('receiver_id', $post->user_id);
+                            })->orWhere(function ($q2) use ($userId, $post) {
+                                $q2->where('sender_id', $post->user_id)->where('receiver_id', $userId);
+                            });
+                        })->exists();
+                    if (!$isConnected) {
+                        return response()->json(['status' => false, 'message' => 'This post is only visible to friends.'], 403);
+                    }
+                }
+            }
+
             return response()->json(['status' => true, 'data' => $post]);
 
         } catch (\Exception $e) {
