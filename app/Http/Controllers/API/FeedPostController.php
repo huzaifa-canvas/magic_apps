@@ -194,6 +194,7 @@ class FeedPostController extends Controller
         $validator = Validator::make($request->all(), [
             'content' => 'nullable|string',
             'is_published' => 'boolean',
+            'privacy' => 'nullable|in:public,only_me,friends',
             'scheduled_at' => 'nullable|date|after:now',
             'attachments.*' => 'file|mimetypes:image/*,video/*',
         ]);
@@ -210,8 +211,9 @@ class FeedPostController extends Controller
 
         try {
             $user = $request->user();
-            $data = $request->only(['content', 'is_published', 'scheduled_at']);
+            $data = $request->only(['content', 'is_published', 'privacy', 'scheduled_at']);
             $data['user_id'] = $user->id;
+            $data['privacy'] = $data['privacy'] ?? 'public';
 
             $post = FeedPost::create($data);
 
@@ -493,6 +495,35 @@ class FeedPostController extends Controller
                 'data' => $shared,
             ]);
 
+        } catch (\Exception $e) {
+            return response()->json(['status' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    public function updatePrivacy(Request $request, $id)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'privacy' => 'required|in:public,only_me,friends',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json(['errors' => $validator->errors(), 'status' => false], 422);
+            }
+
+            $post = FeedPost::findOrFail($id);
+
+            if ($post->user_id !== auth()->id()) {
+                return response()->json(['message' => 'You are not authorized to modify this post.', 'status' => false], 403);
+            }
+
+            $post->update(['privacy' => $request->privacy]);
+
+            return response()->json([
+                'message' => 'Post privacy updated successfully.',
+                'status' => true,
+                'data' => $post,
+            ]);
         } catch (\Exception $e) {
             return response()->json(['status' => false, 'message' => $e->getMessage()], 500);
         }

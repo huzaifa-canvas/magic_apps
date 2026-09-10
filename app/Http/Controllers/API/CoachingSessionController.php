@@ -106,11 +106,13 @@ class CoachingSessionController extends Controller
                 'image' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
                 'video' => 'nullable|file|mimes:mp4,mov,avi,wmv|max:20480',
                 'start_time' => 'required',
-                'end_time' => 'required',
+                'end_time' => 'required|after:start_time',
                 'duration' => 'required|integer',
                 'meeting_link' => 'required|url',
                 'available_days' => 'required|array',
                 'price' => 'required|numeric',
+            ], [
+                'end_time.after' => 'The end time must be greater than start time.'
             ]);
 
             if ($validator->fails()) {
@@ -248,11 +250,13 @@ class CoachingSessionController extends Controller
                 'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
                 'video' => 'nullable|file|mimes:mp4,mov,avi,wmv|max:20480',
                 'start_time' => 'required',
-                'end_time' => 'required',
+                'end_time' => 'required|after:start_time',
                 'duration' => 'required|integer',
                 'meeting_link' => 'required|url',
                 'available_days' => 'required|array',
                 'price' => 'required|numeric',
+            ], [
+                'end_time.after' => 'The end time must be greater than start time.'
             ]);
 
             if ($validator->fails()) {

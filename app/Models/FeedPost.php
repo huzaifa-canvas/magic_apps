@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class FeedPost extends Model
 {
     use HasFactory;
-    protected $fillable = ['user_id', 'original_post_id', 'content','is_shared', 'is_published', 'scheduled_at'];
+    protected $fillable = ['user_id', 'original_post_id', 'content','is_shared', 'is_published', 'privacy', 'scheduled_at'];
 
     public function attachments() {
         return $this->hasMany(PostAttachment::class, 'post_id');

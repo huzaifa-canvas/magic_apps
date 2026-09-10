@@ -109,6 +109,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::post('/create/post', [FeedPostController::class, 'store']);
     Route::post('/update/post/{post_id}', [FeedPostController::class, 'update']);
+    Route::post('/update/post/privacy/{id}', [FeedPostController::class, 'updatePrivacy']);
     Route::post('/delete/post/{id}', [FeedPostController::class, 'destroy']);
 
     // Route::post('/posts/{id}/attachments', [FeedPostController::class, 'addAttachment']);
