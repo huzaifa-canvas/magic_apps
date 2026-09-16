@@ -248,6 +248,29 @@ class UserProfileController extends Controller
         ]);
     }
 
+    // Delete Resume
+    public function deleteResume(Request $request)
+    {
+        $user = $request->user();
+        $profile = $user->profile;
+
+        if (!$profile || !$profile->resume) {
+            return response()->json(['status' => false, 'message' => 'No resume found'], 404);
+        }
+
+        $oldPath = public_path($profile->resume);
+        if (file_exists($oldPath)) {
+            unlink($oldPath);
+        }
+
+        $profile->update(['resume' => null]);
+
+        return response()->json([
+            'status' => true,
+            'message' => 'Resume remove successfully',
+        ]);
+    }
+
     // Search Users by name or email
     public function searchUsers(Request $request)
     {
