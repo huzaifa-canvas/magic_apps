@@ -1,47 +1,74 @@
-<x-guest-layout>
-    <!-- Session Status -->
-    <x-auth-session-status class="mb-4" :status="session('status')" />
+@extends('layouts.auth')
 
-    <form method="POST" action="{{ route('login') }}">
-        @csrf
+@section('title', 'Sign in')
 
-        <!-- Email Address -->
-        <div>
-            <x-input-label for="email" :value="__('Email')" />
-            <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required autofocus autocomplete="username" />
-            <x-input-error :messages="$errors->get('email')" class="mt-2" />
-        </div>
-
-        <!-- Password -->
-        <div class="mt-4">
-            <x-input-label for="password" :value="__('Password')" />
-
-            <x-text-input id="password" class="block mt-1 w-full"
-                            type="password"
-                            name="password"
-                            required autocomplete="current-password" />
-
-            <x-input-error :messages="$errors->get('password')" class="mt-2" />
-        </div>
-
-        <!-- Remember Me -->
-        <div class="block mt-4">
-            <label for="remember_me" class="inline-flex items-center">
-                <input id="remember_me" type="checkbox" class="rounded dark:bg-gray-900 border-gray-300 dark:border-gray-700 text-indigo-600 shadow-sm focus:ring-indigo-500 dark:focus:ring-indigo-600 dark:focus:ring-offset-gray-800" name="remember">
-                <span class="ms-2 text-sm text-gray-600 dark:text-gray-400">{{ __('Remember me') }}</span>
-            </label>
-        </div>
-
-        <div class="flex items-center justify-end mt-4">
-            @if (Route::has('password.request'))
-                <a class="underline text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-offset-gray-800" href="{{ route('password.request') }}">
-                    {{ __('Forgot your password?') }}
+@section('content')
+    <div class="card">
+        <div class="card-body">
+            <!-- Logo -->
+            <div class="app-brand justify-content-center mb-5">
+                <a href="{{ route('login') }}" class="app-brand-link gap-2">
+                    <img src="{{ asset('images/magic-pages-logo.png') }}" alt="Magic Pages" width="56" height="56"
+                        style="border-radius: 50%;" />
+                    <span class="app-brand-text demo text-heading fw-bold ms-2 fs-4">Magic Pages</span>
                 </a>
+            </div>
+            <!-- /Logo -->
+
+            <h4 class="mb-1">Welcome to Magic Pages! 👋</h4>
+            <p class="mb-5">Please sign in to your admin account to continue.</p>
+
+            {{-- Status (e.g. password reset link sent) --}}
+            @if (session('status'))
+                <div class="alert alert-success" role="alert">{{ session('status') }}</div>
             @endif
 
-            <x-primary-button class="ms-3">
-                {{ __('Log in') }}
-            </x-primary-button>
+            @if ($errors->any())
+                <div class="alert alert-danger" role="alert">
+                    <ul class="mb-0 ps-3">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
+            <form class="mb-4" action="{{ route('login') }}" method="POST">
+                @csrf
+
+                <div class="mb-5">
+                    <label for="email" class="form-label">Email</label>
+                    <input type="email" class="form-control @error('email') is-invalid @enderror" id="email"
+                        name="email" value="{{ old('email') }}" placeholder="Enter your email" autofocus required>
+                </div>
+
+                <div class="mb-5 form-password-toggle">
+                    <label class="form-label" for="password">Password</label>
+                    <div class="input-group input-group-merge">
+                        <input type="password" id="password"
+                            class="form-control @error('password') is-invalid @enderror" name="password"
+                            placeholder="&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;&#xb7;"
+                            aria-describedby="password" required>
+                        <span class="input-group-text cursor-pointer"><i class="icon-base ti tabler-eye-off"></i></span>
+                    </div>
+                </div>
+
+                <div class="mb-5">
+                    <div class="d-flex justify-content-between">
+                        <div class="form-check mb-0">
+                            <input class="form-check-input" type="checkbox" id="remember-me" name="remember">
+                            <label class="form-check-label" for="remember-me">Remember Me</label>
+                        </div>
+                        @if (Route::has('password.request'))
+                            <a href="{{ route('password.request') }}" class="small">Forgot Password?</a>
+                        @endif
+                    </div>
+                </div>
+
+                <div class="mb-5">
+                    <button class="btn btn-primary d-grid w-100" type="submit">Sign in</button>
+                </div>
+            </form>
         </div>
-    </form>
-</x-guest-layout>
+    </div>
+@endsection

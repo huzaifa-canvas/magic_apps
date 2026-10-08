@@ -1,89 +1,139 @@
-<x-app-layout>
-    <x-slot name="header">
-        <div class="flex justify-between items-center">
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                {{ __('User Management') }}
-            </h2>
-        </div>
-    </x-slot>
+@extends('layouts.admin')
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 text-gray-900">
+@section('title', 'User Management')
 
-                    {{-- Success Message --}}
-                    <div id="success-alert" class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-4 hidden" role="alert">
-                        <span id="success-message"></span>
-                    </div>
+@section('content')
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="mb-0"><span class="text-body-secondary fw-light">Management /</span> Users</h4>
+    </div>
 
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        ID</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Name</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Email</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Role</th>
-                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Joined</th>
-                                    <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        Can Manage Sessions</th>
-                                </tr>
-                            </thead>
-                            <tbody class="bg-white divide-y divide-gray-200">
-                                @forelse($users as $user)
-                                    <tr>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {{ $user->id }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                            {{ $user->first_name }} {{ $user->last_name }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {{ $user->email }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap">
-                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{ $user->user_role == 'admin' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800' }}">
-                                                {{ ucfirst($user->user_role) }}
-                                            </span>
-                                        </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {{ $user->created_at->format('M d, Y') }}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-center">
-                                            <input type="checkbox"
-                                                class="session-toggle h-5 w-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
-                                                data-user-id="{{ $user->id }}"
-                                                {{ $user->can_manage_sessions ? 'checked' : '' }}>
-                                        </td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="6"
-                                            class="px-6 py-10 whitespace-nowrap text-sm text-gray-500 text-center">
-                                            <p class="text-lg font-medium text-gray-400">No users found.</p>
-                                        </td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="mt-4">
-                        {{ $users->links() }}
-                    </div>
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="GET" action="{{ route('admin.users.index') }}" class="row g-3 align-items-end">
+                <div class="col-md-5">
+                    <label class="form-label">Search</label>
+                    <input type="text" name="q" value="{{ request('q') }}" class="form-control"
+                        placeholder="Name or email">
                 </div>
-            </div>
+                <div class="col-md-3">
+                    <label class="form-label">Role</label>
+                    <select name="role" class="form-select">
+                        <option value="">All roles</option>
+                        <option value="admin" {{ request('role') === 'admin' ? 'selected' : '' }}>Admin</option>
+                        <option value="user" {{ request('role') === 'user' ? 'selected' : '' }}>User</option>
+                    </select>
+                </div>
+                <div class="col-md-auto">
+                    <button type="submit" class="btn btn-primary"><i class="icon-base ti tabler-search me-1"></i>Filter</button>
+                    @if (request('q') || request('role'))
+                        <a href="{{ route('admin.users.index') }}" class="btn btn-outline-secondary">Clear</a>
+                    @endif
+                </div>
+            </form>
         </div>
     </div>
 
+    <div class="card">
+        <div class="card-header border-bottom">
+            <h5 class="card-title mb-0">All Users <span class="badge bg-label-primary ms-2">{{ $users->total() }}</span></h5>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover border-top">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Status</th>
+                        <th class="text-center">Sessions</th>
+                        <th>Joined</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse ($users as $user)
+                        <tr>
+                            <td><span class="text-body-secondary">#{{ $user->id }}</span></td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="avatar avatar-sm me-3">
+                                        <span class="avatar-initial rounded-circle bg-label-primary">
+                                            {{ strtoupper(substr($user->first_name ?? $user->email, 0, 1)) }}
+                                        </span>
+                                    </div>
+                                    <a href="{{ route('admin.users.show', $user->id) }}" class="fw-medium text-heading">
+                                        {{ trim(($user->first_name ?? '') . ' ' . ($user->last_name ?? '')) ?: '—' }}
+                                    </a>
+                                </div>
+                            </td>
+                            <td>{{ $user->email }}</td>
+                            <td>
+                                <span class="badge bg-label-{{ ($user->user_role ?? '') === 'admin' ? 'primary' : 'info' }}">
+                                    {{ ucfirst($user->user_role ?? 'user') }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge bg-label-{{ $user->is_active ? 'success' : 'danger' }}">
+                                    {{ $user->is_active ? 'Active' : 'Inactive' }}
+                                </span>
+                            </td>
+                            <td class="text-center">
+                                <div class="form-check form-switch d-flex justify-content-center mb-0">
+                                    <input class="form-check-input session-toggle" type="checkbox"
+                                        data-user-id="{{ $user->id }}" {{ $user->can_manage_sessions ? 'checked' : '' }}>
+                                </div>
+                            </td>
+                            <td>{{ optional($user->created_at)->format('M d, Y') }}</td>
+                            <td class="text-end">
+                                <div class="dropdown">
+                                    <button type="button" class="btn btn-icon btn-text-secondary rounded-pill dropdown-toggle hide-arrow"
+                                        data-bs-toggle="dropdown"><i class="icon-base ti tabler-dots-vertical"></i></button>
+                                    <div class="dropdown-menu dropdown-menu-end">
+                                        <a class="dropdown-item" href="{{ route('admin.users.show', $user->id) }}">
+                                            <i class="icon-base ti tabler-eye me-2"></i>View
+                                        </a>
+                                        @if ($user->id !== auth()->id())
+                                            <form method="POST" action="{{ route('admin.users.toggle-role', $user->id) }}">
+                                                @csrf
+                                                <button class="dropdown-item">
+                                                    <i class="icon-base ti tabler-shield me-2"></i>
+                                                    {{ ($user->user_role ?? '') === 'admin' ? 'Remove admin' : 'Make admin' }}
+                                                </button>
+                                            </form>
+                                            <form method="POST" action="{{ route('admin.users.toggle-active', $user->id) }}">
+                                                @csrf
+                                                <button class="dropdown-item {{ $user->is_active ? 'text-danger' : 'text-success' }}">
+                                                    <i class="icon-base ti {{ $user->is_active ? 'tabler-ban' : 'tabler-circle-check' }} me-2"></i>
+                                                    {{ $user->is_active ? 'Deactivate' : 'Activate' }}
+                                                </button>
+                                            </form>
+                                        @endif
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="8" class="text-center text-body-secondary py-5">No users found.</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+        @if ($users->hasPages())
+            <div class="card-footer">{{ $users->links() }}</div>
+        @endif
+    </div>
+@endsection
+
+@section('page-script')
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             document.querySelectorAll('.session-toggle').forEach(function (checkbox) {
                 checkbox.addEventListener('change', function () {
                     const userId = this.dataset.userId;
                     const toggle = this;
-
                     fetch(`/admin/users/${userId}/toggle-session-permission`, {
                         method: 'POST',
                         headers: {
@@ -92,26 +142,11 @@
                             'Accept': 'application/json',
                         },
                     })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.status) {
-                            const alert = document.getElementById('success-alert');
-                            const message = document.getElementById('success-message');
-                            message.textContent = data.message;
-                            alert.classList.remove('hidden');
-                            setTimeout(() => alert.classList.add('hidden'), 3000);
-                        } else {
-                            // Revert on failure
-                            toggle.checked = !toggle.checked;
-                            alert('Failed to update permission.');
-                        }
-                    })
-                    .catch(() => {
-                        toggle.checked = !toggle.checked;
-                        alert('Failed to update permission.');
-                    });
+                    .then(r => r.json())
+                    .then(data => { if (!data.status) { toggle.checked = !toggle.checked; alert('Failed to update permission.'); } })
+                    .catch(() => { toggle.checked = !toggle.checked; alert('Failed to update permission.'); });
                 });
             });
         });
     </script>
-</x-app-layout>
+@endsection

@@ -1,19 +1,19 @@
-<x-app-layout>
-    <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-            {{ __('Academic Plannings - All Users') }}
-        </h2>
-    </x-slot>
+@extends('layouts.admin')
 
-    <div class="py-12">
-        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+@section('title', 'Academic Plannings')
 
-            {{-- Filter by User --}}
-            <div class="mb-4 bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm">
-                <form method="GET" action="{{ route('admin.academic-plannings.index') }}"
-                    class="flex items-center space-x-4">
-                    <label class="text-sm font-bold text-gray-700 dark:text-gray-300">Filter by User:</label>
-                    <select name="user_id" class="border rounded py-2 px-3 text-gray-700 text-sm">
+@section('content')
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="mb-0"><span class="text-body-secondary fw-light">Academy /</span> Academic Plannings</h4>
+    </div>
+
+    {{-- Filter --}}
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="GET" action="{{ route('admin.academic-plannings.index') }}" class="row g-3 align-items-end">
+                <div class="col-md-5">
+                    <label class="form-label">Filter by User</label>
+                    <select name="user_id" class="form-select">
                         <option value="">-- All Users --</option>
                         @foreach ($users as $user)
                             <option value="{{ $user->id }}" {{ request('user_id') == $user->id ? 'selected' : '' }}>
@@ -21,117 +21,76 @@
                             </option>
                         @endforeach
                     </select>
-                    <button type="submit"
-                        class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded text-sm">
-                        Filter
+                </div>
+                <div class="col-md-auto">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="icon-base ti tabler-filter me-1"></i> Filter
                     </button>
-                    @if(request('user_id'))
-                        <a href="{{ route('admin.academic-plannings.index') }}"
-                            class="text-red-500 hover:text-red-700 text-sm underline">Clear</a>
+                    @if (request('user_id'))
+                        <a href="{{ route('admin.academic-plannings.index') }}" class="btn btn-outline-secondary">Clear</a>
                     @endif
-                </form>
-            </div>
-
-            @if (session('success'))
-                <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4"
-                    role="alert">
-                    <span class="block sm:inline">{{ session('success') }}</span>
                 </div>
-            @endif
-
-            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 text-gray-900 dark:text-gray-100">
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full leading-normal">
-                            <thead>
-                                <tr>
-                                    <th
-                                        class="px-5 py-3 border-b-2 border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-700 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                                        #
-                                    </th>
-                                    <th
-                                        class="px-5 py-3 border-b-2 border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-700 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                                        User
-                                    </th>
-                                    <th
-                                        class="px-5 py-3 border-b-2 border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-700 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                                        Subject
-                                    </th>
-                                    <th
-                                        class="px-5 py-3 border-b-2 border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-700 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                                        Status
-                                    </th>
-                                    <th
-                                        class="px-5 py-3 border-b-2 border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-700 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                                        Trophy
-                                    </th>
-                                    <th
-                                        class="px-5 py-3 border-b-2 border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-700 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
-                                        Actions
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @forelse ($plannings as $planning)
-                                    <tr>
-                                        <td
-                                            class="px-5 py-5 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm">
-                                            {{ $planning->id }}
-                                        </td>
-                                        <td
-                                            class="px-5 py-5 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm">
-                                            {{ $planning->user->first_name ?? '' }} {{ $planning->user->last_name ?? '' }}
-                                        </td>
-                                        <td
-                                            class="px-5 py-5 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm">
-                                            {{ $planning->subject->name ?? 'N/A' }}
-                                        </td>
-                                        <td
-                                            class="px-5 py-5 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm">
-                                            <span
-                                                class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full {{ $planning->status === 'completed' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' }}">
-                                                {{ ucfirst($planning->status) }}
-                                            </span>
-                                        </td>
-                                        <td
-                                            class="px-5 py-5 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm">
-                                            @if ($planning->has_trophy)
-                                                <span class="text-yellow-500 text-xl" title="Trophy Awarded">🏆</span>
-                                            @else
-                                                <span class="text-gray-400 text-sm">—</span>
-                                            @endif
-                                        </td>
-                                        <td
-                                            class="px-5 py-5 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm">
-                                            <form
-                                                action="{{ route('admin.academic-plannings.toggle-trophy', $planning->id) }}"
-                                                method="POST" class="inline">
-                                                @csrf
-                                                <button type="submit"
-                                                    class="{{ $planning->has_trophy ? 'text-red-600 hover:text-red-900' : 'text-green-600 hover:text-green-900' }} font-semibold text-sm">
-                                                    {{ $planning->has_trophy ? 'Remove Trophy' : 'Award Trophy' }}
-                                                </button>
-                                            </form>
-                                        </td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="6"
-                                            class="px-5 py-5 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-center text-gray-500">
-                                            No Academic Plannings found.
-                                        </td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </div>
-
-                    {{-- Pagination --}}
-                    <div class="mt-4">
-                        {{ $plannings->appends(request()->query())->links() }}
-                    </div>
-                </div>
-            </div>
+            </form>
         </div>
     </div>
-</x-app-layout>
+
+    <div class="card">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>User</th>
+                        <th>Subject</th>
+                        <th>Status</th>
+                        <th>Trophy</th>
+                        <th>Created</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse ($plannings as $planning)
+                        <tr>
+                            <td><span class="text-body-secondary">#{{ $planning->id }}</span></td>
+                            <td>{{ $planning->user->first_name ?? '' }} {{ $planning->user->last_name ?? '' }}</td>
+                            <td>{{ $planning->subject->name ?? 'N/A' }}</td>
+                            <td>
+                                <span class="badge bg-label-{{ $planning->status === 'completed' ? 'success' : 'warning' }}">
+                                    {{ ucfirst($planning->status) }}
+                                </span>
+                            </td>
+                            <td>
+                                @if ($planning->has_trophy)
+                                    <span title="Trophy Awarded" style="font-size: 1.25rem;">🏆</span>
+                                @else
+                                    <span class="text-body-secondary">—</span>
+                                @endif
+                            </td>
+                            <td>
+                                <span class="text-nowrap">{{ optional($planning->created_at)->format('M d, Y') }}</span>
+                                <small class="d-block text-body-secondary">{{ optional($planning->created_at)->format('g:i A') }}</small>
+                            </td>
+                            <td class="text-end">
+                                <form action="{{ route('admin.academic-plannings.toggle-trophy', $planning->id) }}"
+                                    method="POST" class="d-inline">
+                                    @csrf
+                                    <button type="submit"
+                                        class="btn btn-sm {{ $planning->has_trophy ? 'btn-outline-danger' : 'btn-outline-success' }}">
+                                        {{ $planning->has_trophy ? 'Remove Trophy' : 'Award Trophy' }}
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="7" class="text-center text-body-secondary py-5">No Academic Plannings found.</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+        @if ($plannings->hasPages())
+            <div class="card-footer">{{ $plannings->appends(request()->query())->links() }}</div>
+        @endif
+    </div>
+@endsection

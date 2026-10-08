@@ -1,73 +1,71 @@
-<x-app-layout>
-    <x-slot name="header">
-        <div class="flex justify-between items-center">
-            <h2 class="font-semibold text-xl text-gray-800 dark:text-gray-200 leading-tight">
-                {{ __('Create New Badge') }}
-            </h2>
-            <a href="{{ route('admin.badges.index') }}" class="text-indigo-600 dark:text-indigo-400 hover:text-indigo-900 border border-indigo-600 dark:border-indigo-400 font-bold py-2 px-4 rounded">
-                Back to List
-            </a>
-        </div>
-    </x-slot>
+@extends('layouts.admin')
 
-    <div class="py-12">
-        <div class="max-w-3xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white dark:bg-gray-800 shadow-sm sm:rounded-lg">
-                <div class="p-6 text-gray-900 dark:text-gray-100">
+@section('title', 'Create Badge')
+
+@section('content')
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="mb-0"><span class="text-body-secondary fw-light">Academy / Badges /</span> Create</h4>
+        <a href="{{ route('admin.badges.index') }}" class="btn btn-outline-secondary">
+            <i class="icon-base ti tabler-arrow-left me-1"></i> Back to List
+        </a>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-body">
                     <form action="{{ route('admin.badges.store') }}" method="POST" enctype="multipart/form-data">
                         @csrf
-                        
                         <div class="mb-4">
-                            <label class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2" for="name">
-                                Badge Name
-                            </label>
-                            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="name" name="name" type="text" placeholder="e.g. Gold Skills" value="{{ old('name') }}" required>
-                            @error('name') <p class="text-red-500 text-xs italic mt-2">{{ $message }}</p> @enderror
-                        </div>
-
-                        <div class="mb-4">
-                            <label class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2" for="description">
-                                Description
-                            </label>
-                            <textarea class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="description" name="description" placeholder="Brief description">{{ old('description') }}</textarea>
-                            @error('description') <p class="text-red-500 text-xs italic mt-2">{{ $message }}</p> @enderror
+                            <label for="name" class="form-label">Badge Name</label>
+                            <input type="text" id="name" name="name"
+                                class="form-control @error('name') is-invalid @enderror"
+                                placeholder="e.g. Gold Skills" value="{{ old('name') }}" required>
+                            @error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
 
                         <div class="mb-4">
-                            <label class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2" for="type">
-                                Progress Type
-                            </label>
-                            <select class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="type" name="type" required>
-                                <option value="skills" {{ old('type') == 'skills' ? 'selected' : '' }}>Skills</option>
-                                <option value="goals" {{ old('type') == 'goals' ? 'selected' : '' }}>Goals</option>
-                            </select>
-                            @error('type') <p class="text-red-500 text-xs italic mt-2">{{ $message }}</p> @enderror
+                            <label for="description" class="form-label">Description</label>
+                            <textarea id="description" name="description" rows="3"
+                                class="form-control @error('description') is-invalid @enderror"
+                                placeholder="Brief description">{{ old('description') }}</textarea>
+                            @error('description')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-4">
+                                <label for="type" class="form-label">Progress Type</label>
+                                <select id="type" name="type"
+                                    class="form-select @error('type') is-invalid @enderror" required>
+                                    <option value="skills" {{ old('type') == 'skills' ? 'selected' : '' }}>Skills</option>
+                                    <option value="goals" {{ old('type') == 'goals' ? 'selected' : '' }}>Goals</option>
+                                </select>
+                                @error('type')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            </div>
+
+                            <div class="col-md-6 mb-4">
+                                <label for="required_amount" class="form-label">Required Amount</label>
+                                <input type="number" id="required_amount" name="required_amount" min="1"
+                                    class="form-control @error('required_amount') is-invalid @enderror"
+                                    placeholder="e.g. 50" value="{{ old('required_amount') }}" required>
+                                @error('required_amount')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            </div>
                         </div>
 
                         <div class="mb-4">
-                            <label class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2" for="required_amount">
-                                Required Amount
-                            </label>
-                            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="required_amount" name="required_amount" type="number" min="1" placeholder="e.g. 50" value="{{ old('required_amount') }}" required>
-                            @error('required_amount') <p class="text-red-500 text-xs italic mt-2">{{ $message }}</p> @enderror
+                            <label for="icon" class="form-label">Badge Icon (Image, max 2MB)</label>
+                            <input type="file" id="icon" name="icon"
+                                class="form-control @error('icon') is-invalid @enderror" required>
+                            @error('icon')<div class="invalid-feedback">{{ $message }}</div>@enderror
                         </div>
 
-                        <div class="mb-6">
-                            <label class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2" for="icon">
-                                Badge Icon (Image max 2MB)
-                            </label>
-                            <input class="shadow appearance-none border rounded w-full py-2 px-3 dark:text-gray-100 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="icon" name="icon" type="file" required>
-                            @error('icon') <p class="text-red-500 text-xs italic mt-2">{{ $message }}</p> @enderror
-                        </div>
-
-                        <div class="flex items-center justify-between">
-                            <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit">
-                                Create Badge
-                            </button>
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="{{ route('admin.badges.index') }}" class="btn btn-outline-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-primary">Create Badge</button>
                         </div>
                     </form>
                 </div>
             </div>
         </div>
     </div>
-</x-app-layout>
+@endsection

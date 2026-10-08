@@ -11,10 +11,26 @@ class CoachingSessionController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $sessions = CoachingSession::with('user')->latest()->paginate(10);
-        return view('admin.coaching_sessions.index', compact('sessions'));
+        $adminId = auth()->id();
+        $scope = $request->get('scope', 'mine'); // mine | users | all
+
+        $query = CoachingSession::with('user')->latest();
+        if ($scope === 'mine') {
+            $query->where('user_id', $adminId);
+        } elseif ($scope === 'users') {
+            $query->where('user_id', '!=', $adminId);
+        }
+
+        $counts = [
+            'mine'  => CoachingSession::where('user_id', $adminId)->count(),
+            'users' => CoachingSession::where('user_id', '!=', $adminId)->count(),
+            'all'   => CoachingSession::count(),
+        ];
+
+        $sessions = $query->paginate(10)->withQueryString();
+        return view('admin.coaching_sessions.index', compact('sessions', 'scope', 'counts'));
     }
 
     /**
