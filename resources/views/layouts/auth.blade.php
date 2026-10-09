@@ -47,24 +47,7 @@
     <script src="{{ asset('theme/vendor/libs/node-waves/node-waves.js') }}"></script>
     <script src="{{ asset('theme/js/main.js') }}"></script>
 
-    <!-- Password show/hide toggle (document-level delegation = works regardless of load timing) -->
-    <script>
-        document.addEventListener('click', function (e) {
-            const toggle = e.target.closest('.input-group-text');
-            if (!toggle) return;
-            const wrap = toggle.closest('.form-password-toggle');
-            if (!wrap) return;
-            const input = wrap.querySelector('input');
-            if (!input) return;
-            const show = input.type === 'password';
-            input.type = show ? 'text' : 'password';
-            const icon = toggle.querySelector('i');
-            if (icon) {
-                icon.classList.toggle('tabler-eye', show);
-                icon.classList.toggle('tabler-eye-off', !show);
-            }
-        });
-    </script>
+    {{-- Password show/hide is handled by the theme's helpers.js (.form-password-toggle) --}}
 
     @yield('page-script')
 </body>
